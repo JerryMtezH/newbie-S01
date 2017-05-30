@@ -1,0 +1,51 @@
+.container {
+  margin: 0 auto;
+  width: 768px;
+}
+
+header {
+  background-color: black;
+  float: left;
+  width: 100%;
+}
+
+#logo {
+  display: block;
+  margin: 0 auto;
+}
+
+nav {
+  background-color: #b2b2b2;	
+  width: 100%;
+}
+
+nav ul {
+  padding-left: 0px;
+}
+
+nav ul li {
+  float: left;
+  width: 180px;
+  height: 20px;
+  text-align: center;
+  position:relative;
+  display:inline;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  padding-left: 0px;
+  padding-right: 12px;
+}
+
+nav ul li:hover {
+  background-color: black;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+}
+
+.footer {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}

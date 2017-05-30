@@ -1,0 +1,14 @@
+Tutorial de Uso de Float:
+
+http://css.maxdesign.com.au/floatutorial/
+
+Lyout de 2 Columnas:
+
+http://www.456bereastreet.com/lab/developing_with_web_standards/csslayout/2-col/
+
+30 Selectores que se deben de memorizar:
+
+https://code.tutsplus.com/tutorials/the-30-css-selectors-you-must-memorize--net-16048
+
+
+
