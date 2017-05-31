@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <title>Html Intermedio Parte 1</title>
+  <style>
+  .container {
+    align-content: left;
+    width: 600px;
+  }
+
+  #long_input {
+    width: 400px; 
+  }
+
+</style>
+</head>
+<body>
+  <div class="container">
+    <form id="form_informacion_facturacion">
+      <fieldset>
+        <legend>Información de Facturación</legend>
+        <label for="nombre_completo"> 
+          Nombre Completo:
+          <input type="text" name="nombre_completo">
+        </label><br>
+        <label for="rfc">
+          RFC:
+          <input type="text" name="rfc">
+        </label><br>
+        <label for="direccion">
+          Dirección:
+          <input id = "long_input" type="text" name="direccion">
+        </label><br>
+        <label for="email">
+          Email:
+          <input type="email" name="email">
+        </label><br>
+        <label for="telefono">
+          Teléfono:
+          <input type="tel" name="telefono">
+        </label><br>
+        <label for="description">
+          Descripción de la compra:
+          <textarea form="form_informacion_facturacion" rows="5" cols="50"></textarea>
+        </label><br>
+        <label for="tipo_de_pago">
+          Tipo de Pago:
+          <select name="tipo_de_pago" form="form_informacion_facturacion">
+            <option value="cash">Efectivo</option>
+            <option value="check">Cheque</option>
+            <option value="debit">Tarjeta de Débito</option>
+            <option value="credit">Tarjeta de Crédito</option>
+          </select>
+        </label><br>
+        <label for="monto">
+          Monto:
+          <input type="number" name="monto">
+        </label><br>
+      </fieldset>
+      <button type="submit" value="Enviar">Enviar</button>
+      <button type="reset" value="Limpiar">Limpiar</button>
+    </form>
+  </div>
+</body>
+
