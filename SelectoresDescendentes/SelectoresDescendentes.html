@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="selectoresDescendentes.css">
+    <title>CSSLab: selectores descendentes</title>
+</head>
+
+<body>
+
+    <h1>CSSLab: selectores descendentes</h1>
+
+    <div id="ejemplo1">
+      <h2>Vínculos en azul</h2>
+        <ul>
+            <li><a href="">Este deberá ser azul</a></li>
+            <li><em><a href="">Este también deberá ser azul</a></em></li>
+        </ul>
+    </div>
+
+    <div id="ejemplo2">
+      <h2>Clase menu</h2>
+        <ul id="ejemplo2">
+            <li class="menu"><a href="">Este deberá ser verde</a></em></a></li>
+            <li><em><a href="">Este no tiene ninguna class</a></em></li>
+        </ul>
+    </div>
+
+    <div id="ejemplo3">
+        <h2>Vínculo y clase menu</h2>
+        <ul id="ejemplo3">
+            <li class="menu"><a href="">Este tiene una clase menu</a></li>
+            <li><a href="">Este no tiene ninguna class</a></li>
+            <li><em><a href="" class="menu">Este tiene una clase menu y deberá ser verde</a></em></li>
+        </ul>
+    </div>
+
+</body>
+</html>
