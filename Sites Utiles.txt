@@ -10,5 +10,11 @@ http://www.456bereastreet.com/lab/developing_with_web_standards/csslayout/2-col/
 
 https://code.tutsplus.com/tutorials/the-30-css-selectors-you-must-memorize--net-16048
 
+Introduccion Tutorial de CSS:
+
+http://es.learnlayout.com/display.html
+
+
+
 
 
