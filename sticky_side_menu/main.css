@@ -1,0 +1,60 @@
+.container {
+  margin: 0 0 0 150px;
+  width: 720px;
+  padding-left:30px;
+}
+
+.container header {
+	display: block;
+	float: left;
+	width: 100%;
+}
+
+nav {
+	position: fixed;
+    top: 0;
+    left: 0;
+	display: inline-block;
+	width: 150px;
+	height: 100%;
+	background-color: lightgray;
+	padding-right: 10px;
+	padding-top: 0px;
+}
+
+nav ul {
+	float: left;
+	display: inline-block;
+	margin-top: 0px;
+	margin-left: 0px;
+	padding-left: 0px;
+	padding-top: 0px;
+	width: 150px;	
+}
+
+nav ul li {
+	float: left;
+	width: 100%;
+	display: inline-block;
+	margin-left: 0px;
+}
+
+nav ul li a {
+	display: block;
+	text-decoration: none;
+	color: #000;
+	font: Tahoma;
+	background-color: lightgray;
+	padding-top: 5px;
+	padding-bottom: 12px;
+	padding-left: 10px;
+	padding-right: 0px;
+	height: 13px;
+	width: 100%;
+	border-bottom: 1px solid black;
+}
+
+a:hover {
+	background-color: #bcbcbc;
+	color: white;
+}
