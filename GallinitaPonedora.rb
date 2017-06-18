@@ -1,58 +1,59 @@
 class LayingHen
+  
+  @@age = 0
+  @@eggs = 0
+  @@hatched_hours = 0
 
   attr_accessor :age, :eggs, :hatched_hours
-
+  
   def initialize
-    @age = 0
-    @eggs = 0
-    @hatched_hours = 0
+    @@age = 0
+    @@eggs = 0
+    @@hatched_hours = 0
   end
 
   # Ages the hen one month, and lays 4 eggs if the hen is older than 3 months
   def age!
-    @age += 1
-    @eggs += 4 if @age > 3 
+    @@age += 1
+    @@eggs += 4 if @@age > 3 
   end
 
   # Returns +true+ if the hen has laid any eggs, +false+ otherwise
   def any_eggs?
-    @eggs != 0 ? true : false
+    @@eggs != 0 ? true : false
   end
 
   # Returns an Egg if there are any
   # Raises a NoEggsError otherwise
   def pick_an_egg!
     raise NoEggsError, "The hen has not layed any eggs" unless self.any_eggs?
-    @eggs -= 1
+    @@eggs -= 1
     Egg.new    
   end
 
   # Returns +true+ if the hen can't laid eggs anymore because of its age, +false+ otherwise.
   # The max age for a hen to lay eggs is 10 
   def old?
-    @age == 10 ? true : false
+    @@age == 10 ? true : false
   end
 
   def increase_hatched_hour(hours)
-    @hatched_hours += hours
-    p "En increase_hatched_hour @hatched_hours: #{@hatched_hours}"
-    p "En increase_hatched_hour hours: #{hours}"
+    @@hatched_hours += hours
   end
 end
 
 class Egg < LayingHen
 
+  @@new_egg = 0
+
   # Initializes a new Egg with hatched hours +hatched_hours+
   def initialize
-    p "@hatched_hours: #{@hatched_hours}"
-    p "@new_egg: #{@new_egg}"
-    @new_egg = @hatched_hours
+    @@new_egg = @@hatched_hours
   end
 
   # Return +true+ if hatched hours is greater than 3, +false+ otherwise
   def rotten?
-    p "@new_egg: #{@new_egg}"
-    if @new_egg > 3
+    if @@new_egg >= 3
         true
     else
         false
