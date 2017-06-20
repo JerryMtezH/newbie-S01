@@ -3,6 +3,7 @@
 require 'pdf-reader'
 require 'zip'
 require 'csv'
+require 'net/ftp'
 
 class GetFilesInDir
 	attr_reader :list
@@ -120,6 +121,7 @@ class PDFFiles
 	@@reg_pat_txt = "RegistroPatronal:"
 	@@ctl_record_string = "BajasModif.Reing.TotalBajasModif.Reing.TotalBajasModif.Reing.Total"
 	@@sep = "|"
+	@@logfile = ""
 	
 	def initialize
 		@lotes = []
@@ -154,10 +156,61 @@ class PDFFiles
 		@@all_ctl_records = []
 		@@all_det_records = []
 		@@all_rej_records = []
-		@@created_at = Time.new 
+		@@created_at = Time.new
+		@@date_and_time_for_files = @@created_at.to_s.split("-").join.to_s.split(":").join.to_s.split(" ").join("_")[0..14]
+		@@logfile = "." + @destino_csv + "LI1_" + @@date_and_time_for_files + ".tmp"
+		$stdout.reopen(@@logfile, "w")
+		$stdout.sync = true
+		$stderr.reopen($stdout)
 	end
 
+	def clean_out_dirs
+		puts " Entro ------------------------>  clean_out_dirs"	
+		FileUtils.cd "./CSVs_Generados"
+		p = GetFilesInDir.new('.*')
+		@pdf_files_list = p.list
+		puts "------------------------> Archivos Seleccionados: #{@pdf_files_list.count}"
+		@pdf_files_list.each do |path_and_file|
+			count_files += 1
+			puts "------------------------>  Inicia: #{path_and_file}  (#{count_files}) "
+		end
+		FileUtils.cd "../CSVs_Enviados"
+		p = GetFilesInDir.new('.*')
+		@pdf_files_list = p.list
+		puts "------------------------> Archivos Seleccionados: #{@pdf_files_list.count}"
+		@pdf_files_list.each do |path_and_file|
+			count_files += 1
+			puts "------------------------>  Inicia: #{path_and_file}  (#{count_files}) "
+		end
+		FileUtils.cd "../PDFs_Extraidos"
+		p = GetFilesInDir.new('.*')
+		@pdf_files_list = p.list
+		puts "------------------------> Archivos Seleccionados: #{@pdf_files_list.count}"
+		@pdf_files_list.each do |path_and_file|
+			count_files += 1
+			puts "------------------------>  Inicia: #{path_and_file}  (#{count_files}) "
+		end
+		FileUtils.cd "../ZIPs_Procesados"
+		p = GetFilesInDir.new('.*')
+		@pdf_files_list = p.list
+		puts "------------------------> Archivos Seleccionados: #{@pdf_files_list.count}"
+		@pdf_files_list.each do |path_and_file|
+			count_files += 1
+			puts "------------------------>  Inicia: #{path_and_file}  (#{count_files}) "
+		end
+		FileUtils.cd "../PDFs_Procesados"
+		p = GetFilesInDir.new('.*')
+		@pdf_files_list = p.list
+		puts "------------------------> Archivos Seleccionados: #{@pdf_files_list.count}"
+		@pdf_files_list.each do |path_and_file|
+			count_files += 1
+			puts "------------------------>  Inicia: #{path_and_file}  (#{count_files}) "
+		end
+		FileUtils.cd ".."
+	end	
+
 	def process_pdf_list
+		self.clean_out_dirs
 		count_files = 0
 		FileUtils.cd @origen_pdf
 		p = GetFilesInDir.new('.pdf')
@@ -165,29 +218,72 @@ class PDFFiles
 		puts "------------------------> Archivos Seleccionados: #{@pdf_files_list.count}"
 		@pdf_files_list.each do |path_and_file|
 			count_files += 1
-			#puts "------------------------>  Inicia: #{path_and_file}  (#{count_files}) "
+			puts "------------------------>  Inicia: #{path_and_file}  (#{count_files}) "
 			self.process_file(path_and_file)
 			processed_file = ".." + @destino_pdf + (File.basename path_and_file)
 			FileUtils.mv path_and_file, processed_file
 		end
 		FileUtils.cd ".."
 		if @@all_ctl_records.count != 0
-			#puts " Entro ------------------------>  @@all_ctl_records.count: #{@@all_ctl_records.count}"	
-			self.write_ctl_in_csv
+			puts " Total ------------------------>  @@all_ctl_records.count: #{@@all_ctl_records.count}"	
+			self.write_ctl_in_csv_as_stdout
 		end	
 		if @@all_det_records.count != 0
-			#puts " Entro ------------------------>  @@all_det_records.count: #{@@all_det_records.count}"	
-			self.write_det_in_csv
+			puts " Total ------------------------>  @@all_det_records.count: #{@@all_det_records.count}"	
+			self.write_det_in_csv_as_stdout
 		end	
 		if @@all_rej_records.count != 0
-			#puts " Entro ------------------------>  @@all_rej_records.count: #{@@all_rej_records.count}"	
-			self.write_rejs_in_csv
+			puts " Total ------------------------>  @@all_rej_records.count: #{@@all_rej_records.count}"	
+			self.write_rejs_in_csv_as_stdout
 		end	
+		#system("type *.tmp > CSVs_Generados/Log_Importacion_#{@@date_and_time_for_files}.txt")
+		dir = "." + @destino_csv
+		FileUtils.cd dir
+		File.open("Log_Importacion_#{@@date_and_time_for_files}.txt","w"){|f|f.puts Dir['*@@date_and_time_for_files.tmp'].map{|nm|IO.read nm}}
+		FileUtils.cd ".."
+	end	
+
+	def send_files_to_ibm_server
+		csv_enviados = "/CSVs_Enviados/"
+		ftp_site = Ftp_manager.new
+		@@logfile = "." + csv_enviados + "Log_Envio_" + @@date_and_time_for_files + ".txt"
+		$stdout.reopen(@@logfile, "w")
+		$stdout.sync = true
+		$stderr.reopen($stdout)
+		count_files = 0
+		FileUtils.cd "." + @destino_csv
+		c = GetFilesInDir.new('.csv')
+		csv_files_list = c.list
+		puts "------------------------> Archivos CSV Seleccionados: #{csv_files_list.count}"
+		puts csv_files_list
+		csv_files_list.each do |path_and_file|
+			puts "------------------------> Procesa Archivo: #{path_and_file}"
+			count_files += 1
+			dir_of_file = ".." + @destino_csv
+			sending_file = File.basename path_and_file
+			ftp_site.transfer_files(dir_of_file, sending_file, "./inbound")
+			processed_file = ".." + csv_enviados + sending_file
+			FileUtils.mv path_and_file, processed_file
+		end
+		t = GetFilesInDir.new('.txt')
+		txt_files_list = t.list
+		puts "------------------------> Archivos TXT Seleccionados: #{txt_files_list.count}"
+		puts txt_files_list
+		txt_files_list.each do |path_and_file|
+			puts "------------------------> Procesa Archivo: #{path_and_file}"
+			count_files += 1
+			dir_of_file = ".." + @destino_csv
+			sending_file = File.basename path_and_file
+			ftp_site.transfer_files(dir_of_file, sending_file, "./inbound")
+			processed_file = ".." + csv_enviados + sending_file
+			FileUtils.mv path_and_file, processed_file
+		end
+		ftp_site.dirlist("./inbound")
 	end	
 
 	protected
 	def process_file(pdf_file)
-		#puts " Entro ------------------------>  process_file"	
+		#puts " Entro ------------------------>  process_file #{pdf_file}"	
 		@@reader = PDF::Reader.new(pdf_file)
 		count_page = 0
 		@complete_rej_line_switch = false	
@@ -205,6 +301,7 @@ class PDFFiles
 
 		@@reader.pages.each do |page|
 			count_page += 1
+			#puts " Entro ------------------------>  reader.pages.each (page: #{count_page})"	
 			txt_lines = @@reader.page(count_page).text.split(/\n/) 
 			@ctl_row = 0
 			@det_row = 0
@@ -231,10 +328,11 @@ class PDFFiles
 		@ctl_opr_movs << [@count_files,pdf_file,[@d_opr_bajas,@d_opr_modif,@d_opr_reing,@d_opr_total]]
 		@ctl_rej_movs << [@count_files,pdf_file,[@d_rej_bajas,@d_rej_modif,@d_rej_reing,@d_rej_total]]
 		@ctl_rec_movs << [@count_files,pdf_file,[(@d_rej_bajas + @d_opr_bajas),(@d_rej_modif + @d_opr_modif),(@d_rej_reing + @d_opr_reing),(@d_rej_total + @d_opr_total)]]
-		#puts "------------------------> Cifras a Detalle:"
-		#puts "  Recibidas (B, M, R y T): #{@ctl_rec_movs.last}"
-		#puts "   Operadas (B, M, R y T): #{@ctl_opr_movs.last}"
-		#puts " Rechazadas (B, M, R y T): #{@ctl_rej_movs.last}"
+		puts "------------------------> Cifras a Detalle procesadas directamente renglon por renglon:"
+		puts "  Recibidas (B, M, R y T): #{@ctl_rec_movs.last}"
+		puts "   Operadas (B, M, R y T): #{@ctl_opr_movs.last}"
+		puts " Rechazadas (B, M, R y T): #{@ctl_rej_movs.last}"
+		puts "  Fecha y Hora de Proceso: #{Time.new}"
 		puts "------------------------> Termina: #{pdf_file}  (#{@count_files})"
 	end	
 
@@ -244,18 +342,19 @@ class PDFFiles
 		if arr_line.count == 12
 			self.set_ctl_rcd(pdf_file, @lotes.last, @regpats.last, count_page, row, arr_line)
 			self.stp_considering_ctl_lines
-			#puts "  Rec_bajas: #{arr_line[0]}"
-	    	#puts "  Rec_modif: #{arr_line[1]}"
-	    	#puts "  Rec_reing: #{arr_line[2]}" 
-	    	#puts "  Rec_total: #{arr_line[3]}"
-	    	#puts "  opr_bajas: #{arr_line[4]}"
-	    	#puts "  opr_modif: #{arr_line[5]}"
-	    	#puts "  opr_reing: #{arr_line[6]}"
-	    	#puts "  opr_total: #{arr_line[7]}"
-	    	#puts "  rej_bajas: #{arr_line[8]}" 
-	    	#puts "  rej_modif: #{arr_line[9]}" 
-	    	#puts "  rej_reing: #{arr_line[10]}"
-	    	#puts "  rej_total: #{arr_line[11]}"
+			puts "------------------------> Cifras en el registro de Control:"
+			puts "  Rec_bajas: #{arr_line[0]}"
+	    	puts "  Rec_modif: #{arr_line[1]}"
+	    	puts "  Rec_reing: #{arr_line[2]}" 
+	    	puts "  Rec_total: #{arr_line[3]}"
+	    	puts "  opr_bajas: #{arr_line[4]}"
+	    	puts "  opr_modif: #{arr_line[5]}"
+	    	puts "  opr_reing: #{arr_line[6]}"
+	    	puts "  opr_total: #{arr_line[7]}"
+	    	puts "  rej_bajas: #{arr_line[8]}" 
+	    	puts "  rej_modif: #{arr_line[9]}" 
+	    	puts "  rej_reing: #{arr_line[10]}"
+	    	puts "  rej_total: #{arr_line[11]}"
 		end
 	end	
 
@@ -357,7 +456,7 @@ class PDFFiles
 	end	
 
 	def str_considering_ctl_line(row)
-		#puts " Entro ------------------------>  str_considering_ctl"
+		#puts " Entro ------------------------>  str_considering_ctl_line"
 		@get_ctl_lines = true
 		@ctl_row = row + 2
 	end		
@@ -437,57 +536,109 @@ class PDFFiles
 		@complete_rej_line_switch
 	end	
 
-	def write_ctl_in_csv
-		#puts " Entro ------------------------>  write_ctl_in_csv"	
+	def write_ctl_in_csv_as_stdout
+		#puts " Entro ------------------------>  write_ctl_in_csv_as_stdout"	
 		tot_arr = [" ", "Total_General_Proceso", " ", " "," "," "," ",@@created_at] + Array.new(36, 0)
 		idx = 0
-		csv_file = "." + @destino_csv + "Cifras_Importacion_" + @@created_at.to_s.split("-").join.to_s.split(":").join.to_s.split(" ").join("_")[0..14] + ".csv"
-		CSV.open(csv_file,'wb', col_sep: @@sep,  encoding: "UTF-8") do |csvfile|
-			csvfile << ["Rcd", "Archivo", "Lote", "reg_pat","Tipo","Pagina","Renglon","Fecha","C.ctl_Rec_Bajas", "C.ctl_Rec_Modif", "C.ctl_Rec_Reing", "C.ctl_Rec_Total", "C.ctl_opr_Bajas", "C.ctl_opr_Modif", "C.ctl_opr_Reing", "C.ctl_opr_Total", "C.ctl_rej_Bajas", "C.ctl_rej_Modif", "C.ctl_rej_Reing", "C.ctl_rej_Total","R.Det_Rec_Bajas", "R.Det_Rec_Modif", "R.Det_Rec_Reing", "R.Det_Rec_Total", "R.Det_opr_Bajas", "R.Det_opr_Modif", "R.Det_opr_Reing", "R.Det_opr_Total", "R.Det_rej_Bajas", "R.Det_rej_Modif", "R.Det_rej_Reing", "R.Det_rej_Total","V.Dif_Rec_Bajas", "V.Dif_Rec_Modif", "V.Dif_Rec_Reing", "V.Dif_Rec_Total", "V.Dif_opr_Bajas", "V.Dif_opr_Modif", "V.Dif_opr_Reing", "V.Dif_opr_Total", "V.Dif_rej_Bajas", "V.Dif_rej_Modif", "V.Dif_rej_Reing", "V.Dif_rej_Total"]
-			@@all_ctl_records.each do |row|
-				@ctl_rec_movs[idx][2].each {|x|row << x.to_s}
-				@ctl_opr_movs[idx][2].each {|x|row << x.to_s}
-				@ctl_rej_movs[idx][2].each {|x|row << x.to_s}
-				12.times do |x|
-					row << (row[x+8].to_i - row[x+20].to_i).to_s 	
-				end
-    			csvfile << row
-    			36.times do |x|
-    				tot_arr[x+8] += row[x+8].to_i
-    			end
-    			idx += 1
-  			end
-  			36.times do |x|
-    			tot_arr[x+8] = tot_arr[x+8].to_s
-    		end
-  			csvfile << tot_arr
-  		end
+		csv_file = "." + @destino_csv + "Cifras_Importacion_" + @@date_and_time_for_files + ".csv"
+		$stdout.reopen(csv_file, "w")
+		$stdout.sync = true
+		$stderr.reopen($stdout)
+		puts "Rcd|Archivo|Lote|reg_pat|Tipo|Pagina|Renglon|Fecha|C.ctl_Rec_Bajas|C.ctl_Rec_Modif|C.ctl_Rec_Reing|C.ctl_Rec_Total|C.ctl_opr_Bajas|C.ctl_opr_Modif|C.ctl_opr_Reing|C.ctl_opr_Total|C.ctl_rej_Bajas|C.ctl_rej_Modif|C.ctl_rej_Reing|C.ctl_rej_Total|R.Det_Rec_Bajas|R.Det_Rec_Modif|R.Det_Rec_Reing|R.Det_Rec_Total|R.Det_opr_Bajas|R.Det_opr_Modif|R.Det_opr_Reing|R.Det_opr_Total|R.Det_rej_Bajas|R.Det_rej_Modif|R.Det_rej_Reing|R.Det_rej_Total|V.Dif_Rec_Bajas|V.Dif_Rec_Modif|V.Dif_Rec_Reing|V.Dif_Rec_Total|V.Dif_opr_Bajas|V.Dif_opr_Modif|V.Dif_opr_Reing|V.Dif_opr_Total|V.Dif_rej_Bajas|V.Dif_rej_Modif|V.Dif_rej_Reing|V.Dif_rej_Total".force_encoding('utf-8').encode('iso-8859-1')
+		@@all_ctl_records.each do |row|
+			@ctl_rec_movs[idx][2].each {|x|row << x.to_s}
+			@ctl_opr_movs[idx][2].each {|x|row << x.to_s}
+			@ctl_rej_movs[idx][2].each {|x|row << x.to_s}
+			12.times do |x|
+				row << (row[x+8].to_i - row[x+20].to_i).to_s 	
+			end
+			row[0..42].each {|r| print "#{r}|"}
+			puts row[43]
+			36.times do |x|
+				tot_arr[x+8] += row[x+8].to_i
+			end
+			idx += 1	
+		end
+  		tot_arr[0..42].each {|r| print "#{r}|"}
+		puts tot_arr[43]
+		@@logfile = "." + @destino_csv + "LI2_" + @@date_and_time_for_files + ".tmp"
+		$stdout.reopen(@@logfile, "w")
+		$stdout.sync = true
+		$stderr.reopen($stdout)
 	end	
 
-	def write_det_in_csv
-		#puts " Entro ------------------------>  write_det_in_csv"	
-		csv_file = "." + @destino_csv + "Detalle_Importacion_" + @@created_at.to_s.split("-").join.to_s.split(":").join.to_s.split(" ").join("_")[0..14] + ".csv"
-		CSV.open(csv_file,'wb', col_sep: @@sep,  encoding: "UTF-8") do |csvfile|
-			csvfile << ["Rcd", "Archivo", "Lote", "reg_pat","Tipo","Pagina","Renglon","Fecha","Tipo", "NSS", "Nombre_Asegurado", "Sal_Base", "Ext", "UMF", "Tipo", "Fec-Mov", "Tipo", "Cod_Baja"]
-			@@all_det_records.each do |row|
-    			csvfile << row
-  			end
-  		end
+	def write_det_in_csv_as_stdout
+		#puts " Entro ------------------------>  write_det_in_csv_as_stdout"	
+		csv_file = "." + @destino_csv + "Detalle_Importacion_" + @@date_and_time_for_files + ".csv"
+		$stdout.reopen(csv_file, "w")
+		$stdout.sync = true
+		$stderr.reopen($stdout)
+		puts "Rcd|Archivo|Lote|reg_pat|Tipo|Pagina|Renglon|Fecha|Tipo|NSS|Nombre_Asegurado|Sal_Base|Ext|UMF|Tipo|Fec-Mov|Tipo|Cod_Baja"
+		@@all_det_records.each do |x|
+			x[0..9].each {|r| print "#{r}|"}
+			print "#{x[10].force_encoding('utf-8').encode('iso-8859-1')}|"
+	    	x[11..16].each {|r| print "#{r}|"}
+	    	puts x[17]
+		end	
+		@@logfile = "." + @destino_csv + "LI3_" + @@date_and_time_for_files + ".tmp"
+		$stdout.reopen(@@logfile, "w")
+		$stdout.sync = true
+		$stderr.reopen($stdout)
 	end	
 
-	def write_rejs_in_csv
-		#puts " Entro ------------------------>  write_rejs_in_csv"	
-		csv_file = "." + @destino_csv + "Rechazos_Importacion_" + @@created_at.to_s.split("-").join.to_s.split(":").join.to_s.split(" ").join("_")[0..14] + ".csv"
-		CSV.open(csv_file,'wb', col_sep: @@sep,  encoding: "UTF-8") do |csvfile|
-			csvfile << ["Rcd", "Archivo", "Lote", "reg_pat","Tipo","Pagina","Renglon","Fecha","T-Mov", "NSS", "Nombre_Asegurado","Codigo_Error","Error","Dato_Adicional"]
-			@@all_rej_records.each do |row|
-    			csvfile << row
-  			end
-  		end
+	def write_rejs_in_csv_as_stdout
+		#puts " Entro ------------------------>  write_rejs_in_csv_as_stdout"	
+  		csv_file = "." + @destino_csv + "Rechazos_Importacion_" + @@date_and_time_for_files + ".csv"
+		$stdout.reopen(csv_file, "w")
+		$stdout.sync = true
+		$stderr.reopen($stdout)
+		puts "Rcd|Archivo|Lote|reg_pat|Tipo|Pagina|Renglon|Fecha|T-Mov|NSS|Nombre_Asegurado|Codigo_Error|Error|Dato_Adicional"
+		@@all_rej_records.each do |x|
+			x[0..9].each {|r| print "#{r}|"}
+			x[10..12].each {|r| print "#{r.force_encoding('utf-8').encode('iso-8859-1')}|" }
+			puts x[13].force_encoding('utf-8').encode('iso-8859-1')	
+		end	
+		@@logfile = "." + @destino_csv + "LI4_" + @@date_and_time_for_files + ".zzz"
+		$stdout.reopen(@@logfile, "w")
+		$stdout.sync = true
+		$stderr.reopen($stdout)
 	end
-end		
+end	
+
+class Ftp_manager
+
+	attr_reader :server
+
+	@server = ""
+	@login = ""
+	@password = ""
+	
+	def initialize
+		@server = "192.168.12.252"
+		@login = "ftp_confr"
+		@password = "z2x3c4v5b6"
+	end	
+
+	def dirlist(destino)
+		Net::FTP.open(@server, @login, @password) do |ftp|
+		  ftp.chdir(destino)
+		  files = ftp.list
+		  puts "--------------- > list files in directory #{destino}:"
+		  puts files
+		end
+	end
+	def transfer_files(dir, file, destino)
+		localfile = dir + file
+		Net::FTP.open(@server, @login, @password) do |ftp|
+			ftp.debug_mode = true
+			ftp.chdir(destino)
+		 	ftp.puttextfile(localfile, remotefile = File.basename(localfile))
+		end
+	end	
+end	
 
 zip_list = ZIPFiles.new
 zip_list.process_zip_list
 pdf_list = PDFFiles.new
 pdf_list.process_pdf_list
+pdf_list.send_files_to_ibm_server
