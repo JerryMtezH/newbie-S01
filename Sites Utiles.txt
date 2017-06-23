@@ -29,6 +29,13 @@ https://www.w3schools.com/css/css_boxmodel.asp
 
 https://www.w3schools.com/tags/default.asp
 
+Introduccion a bootstrap:
+
+http://getbootstrap.com/getting-started/
+
+
+http://getbootstrap.com/css/
+
 
 
 
